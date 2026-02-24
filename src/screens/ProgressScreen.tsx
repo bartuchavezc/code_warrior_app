@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWarriorData } from '../hooks/useWarriorData';
 import { WeightLog } from '../hooks/types';
@@ -7,36 +7,67 @@ import { Header } from '../components/Header';
 import { getTheme } from '../theme/colors';
 
 export default function ProgressScreen() {
-    const { weightLogs, getCurrentStreak } = useWarriorData();
+    const { weightLogs, sessionDates, getCurrentStreak, deleteWeightLog, deleteSession } = useWarriorData();
     const isDark = false;
     const theme = getTheme(isDark);
 
     const liftLogs = weightLogs.filter(w => w.type === 'lift');
 
-    // Calculate 7-day volume vs previous 7-day volume
+    // Calculate 7-day average lift vs previous 7-day average
     const msInWeek = 1000 * 60 * 60 * 24 * 7;
     const now = new Date().getTime();
 
-    let thisWeekVolume = 0;
-    let lastWeekVolume = 0;
+    let thisWeekTotal = 0;
+    let thisWeekCount = 0;
+    let lastWeekTotal = 0;
+    let lastWeekCount = 0;
 
     liftLogs.forEach(log => {
         const logTime = new Date(log.date).getTime();
         const diff = now - logTime;
-        const vol = log.weight * (log.reps || 1);
 
         if (diff <= msInWeek) {
-            thisWeekVolume += vol;
+            thisWeekTotal += log.weight;
+            thisWeekCount += 1;
         } else if (diff <= msInWeek * 2) {
-            lastWeekVolume += vol;
+            lastWeekTotal += log.weight;
+            lastWeekCount += 1;
         }
     });
 
-    const volumeChange = lastWeekVolume > 0
-        ? Math.round(((thisWeekVolume - lastWeekVolume) / lastWeekVolume) * 100)
+    const thisWeekAvg = thisWeekCount > 0 ? thisWeekTotal / thisWeekCount : 0;
+    const lastWeekAvg = lastWeekCount > 0 ? lastWeekTotal / lastWeekCount : 0;
+
+    const volumeChange = lastWeekAvg > 0
+        ? Math.round(((thisWeekAvg - lastWeekAvg) / lastWeekAvg) * 100)
         : 0;
 
     const streak = getCurrentStreak();
+
+    const sortedSessionDates = useMemo(
+        () => [...sessionDates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime()),
+        [sessionDates]
+    );
+
+    const [selectedSessionIndex, setSelectedSessionIndex] = useState(0);
+
+    const selectedDate = sortedSessionDates[selectedSessionIndex] || null;
+    const selectedLiftLogs = selectedDate
+        ? liftLogs.filter(log => log.date.split('T')[0] === selectedDate)
+        : liftLogs;
+
+    const formatSessionLabel = (dateStr: string, index: number) => {
+        const date = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(dateStr);
+        target.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Hoy';
+        if (diffDays === 1) return 'Ayer';
+        return date.toLocaleDateString();
+    };
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -45,7 +76,7 @@ export default function ProgressScreen() {
             <ScrollView style={styles.content}>
 
                 <View style={styles.overviewHeader}>
-                    <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>OVERVIEW</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>OVERVIEW</Text>
                     <View style={[styles.badge, { backgroundColor: theme.primary + '1a' }]}>
                         <Text style={[styles.badgeText, { color: theme.primary }]}>Last 30 Days</Text>
                     </View>
@@ -54,9 +85,9 @@ export default function ProgressScreen() {
                 {/* Cards */}
                 <View style={styles.cardsRow}>
                     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                        <Text style={[styles.cardLabel, { color: theme.textMuted }]}>This Week's Volume</Text>
+                        <Text style={[styles.cardLabel, { color: theme.textMuted }]}>Average Lift (This Week)</Text>
                         <Text style={[styles.cardValue, { color: theme.text }]}>
-                            {thisWeekVolume} <Text style={styles.cardUnit}>kg</Text>
+                            {thisWeekAvg.toFixed(1)} <Text style={styles.cardUnit}>kg</Text>
                         </Text>
                         <Text style={[styles.trendText, { color: volumeChange >= 0 ? theme.primary : '#ef4444' }]}>
                             {volumeChange >= 0 ? '+' : ''}{volumeChange}% vs Last Week
@@ -74,15 +105,93 @@ export default function ProgressScreen() {
                     </View>
                 </View>
 
+                {/* Session timeline */}
+                {sortedSessionDates.length > 0 && (
+                    <View style={styles.sessionsSection}>
+                        <View style={styles.sessionsHeader}>
+                            <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>SESIONES</Text>
+                            {selectedDate && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        Alert.alert(
+                                            'Eliminar sesión',
+                                            `¿Seguro que deseas eliminar la sesión del ${formatSessionLabel(selectedDate, selectedSessionIndex)}?`,
+                                            [
+                                                { text: 'Cancelar', style: 'cancel' },
+                                                {
+                                                    text: 'Eliminar',
+                                                    style: 'destructive',
+                                                    onPress: () => {
+                                                        deleteSession(selectedDate);
+                                                        if (selectedSessionIndex >= sortedSessionDates.length - 1) {
+                                                            setSelectedSessionIndex(Math.max(0, sortedSessionDates.length - 2));
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        );
+                                    }}
+                                >
+                                    <Text style={{ color: '#ef4444', fontSize: 12, fontWeight: 'bold' }}>Eliminar sesión</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.sessionsScroll}
+                        >
+                            {sortedSessionDates.map((dateStr, index) => (
+                                <TouchableOpacity
+                                    key={dateStr}
+                                    style={[
+                                        styles.sessionChip,
+                                        index === selectedSessionIndex && { backgroundColor: theme.primary + '22', borderColor: theme.primary }
+                                    ]}
+                                    onPress={() => setSelectedSessionIndex(index)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.sessionChipText,
+                                            { color: index === selectedSessionIndex ? theme.primary : theme.textMuted }
+                                        ]}
+                                    >
+                                        {formatSessionLabel(dateStr, index)}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+
                 {/* History */}
                 <View style={styles.historySection}>
-                    <Text style={[styles.sectionTitle, { color: theme.textMuted, marginBottom: 16 }]}>RECENT LIFT HISTORY</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.textMuted, marginBottom: 16 }]}>
+                        HISTORIAL DE LIFTS {selectedDate ? `(sesión ${formatSessionLabel(selectedDate, selectedSessionIndex)})` : ''}
+                    </Text>
 
-                    {liftLogs.slice(0, 10).map((log: WeightLog) => (
-                        <View key={log.id} style={[styles.historyItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    {selectedLiftLogs.slice(0, 10).map((log: WeightLog) => (
+                        <TouchableOpacity
+                            key={log.id}
+                            style={[styles.historyItem, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                            onLongPress={() => {
+                                Alert.alert(
+                                    'Eliminar registro',
+                                    `¿Eliminar registro de ${log.exerciseId} (${log.weight} kg)?`,
+                                    [
+                                        { text: 'Cancelar', style: 'cancel' },
+                                        {
+                                            text: 'Eliminar',
+                                            style: 'destructive',
+                                            onPress: () => deleteWeightLog(log.id)
+                                        }
+                                    ]
+                                );
+                            }}
+                        >
                             <View>
                                 <Text style={[styles.historyTitle, { color: theme.text }]}>
-                                    {log.exercise || 'Lift'}
+                                    {log.exerciseId || 'Lift'}
                                 </Text>
                                 <Text style={[styles.historyDate, { color: theme.textMuted }]}>
                                     {new Date(log.date).toLocaleDateString()}
@@ -91,10 +200,10 @@ export default function ProgressScreen() {
                             <View style={{ alignItems: 'flex-end' }}>
                                 <Text style={[styles.historyWeight, { color: theme.text }]}>{log.weight} kg</Text>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     ))}
 
-                    {liftLogs.length === 0 && (
+                    {selectedLiftLogs.length === 0 && (
                         <Text style={{ textAlign: 'center', color: theme.textMuted, marginTop: 24 }}>
                             No hay registros aún.
                         </Text>
@@ -173,6 +282,31 @@ const styles = StyleSheet.create({
     },
     historySection: {
         paddingBottom: 40,
+    },
+    sessionsSection: {
+        marginBottom: 24,
+    },
+    sessionsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    sessionsScroll: {
+        paddingVertical: 8,
+        paddingRight: 8,
+    },
+    sessionChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        marginRight: 8,
+    },
+    sessionChipText: {
+        fontSize: 12,
+        fontWeight: '500',
     },
     historyItem: {
         flexDirection: 'row',

@@ -247,7 +247,27 @@ export const useWarriorData = () => {
         });
 
         await updateRoutine(newRoutine);
-    }
+    };
+
+    const deleteWeightLog = async (logId: string) => {
+        const newLogs = weightLogs.filter(log => log.id !== logId);
+        setWeightLogs(newLogs);
+        try {
+            await AsyncStorage.setItem(LOGS_KEY, JSON.stringify(newLogs));
+        } catch (e) {
+            console.error('Failed to delete weight log', e);
+        }
+    };
+
+    const deleteSession = async (dateStr: string) => {
+        const newDates = sessionDates.filter(d => d !== dateStr);
+        setSessionDates(newDates);
+        try {
+            await AsyncStorage.setItem(SESSION_DATES_KEY, JSON.stringify(newDates));
+        } catch (e) {
+            console.error('Failed to delete session date', e);
+        }
+    };
 
     return {
         routine,
@@ -265,6 +285,8 @@ export const useWarriorData = () => {
         addDayToRoutine,
         addExerciseToDay,
         deleteDayFromRoutine,
-        deleteExerciseFromDay
+        deleteExerciseFromDay,
+        deleteWeightLog,
+        deleteSession
     };
 };

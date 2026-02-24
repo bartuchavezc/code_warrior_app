@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWarriorData } from '../hooks/useWarriorData';
 import { Header } from '../components/Header';
 import { getTheme } from '../theme/colors';
 
 export default function WeightScreen() {
-    const { weightLogs, logBodyWeight } = useWarriorData();
+    const { weightLogs, logBodyWeight, deleteWeightLog } = useWarriorData();
     const isDark = false;
     const theme = getTheme(isDark);
 
@@ -74,7 +74,24 @@ export default function WeightScreen() {
                         <Text style={[styles.sectionTitle, { color: theme.textMuted, marginBottom: 16 }]}>HISTORIAL</Text>
 
                         {bodyWeightLogs.map((log) => (
-                            <View key={log.id} style={[styles.historyItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                            <TouchableOpacity
+                                key={log.id}
+                                style={[styles.historyItem, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                                onLongPress={() => {
+                                    Alert.alert(
+                                        'Eliminar registro',
+                                        `¿Eliminar registro de peso de ${log.weight} kg del ${new Date(log.date).toLocaleDateString()}?`,
+                                        [
+                                            { text: 'Cancelar', style: 'cancel' },
+                                            {
+                                                text: 'Eliminar',
+                                                style: 'destructive',
+                                                onPress: () => deleteWeightLog(log.id)
+                                            }
+                                        ]
+                                    );
+                                }}
+                            >
                                 <View>
                                     <Text style={[styles.historyTitle, { color: theme.text }]}>
                                         Registro
@@ -86,7 +103,7 @@ export default function WeightScreen() {
                                 <View style={{ alignItems: 'flex-end' }}>
                                     <Text style={[styles.historyWeight, { color: theme.text }]}>{log.weight} kg</Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))}
 
                         {bodyWeightLogs.length === 0 && (

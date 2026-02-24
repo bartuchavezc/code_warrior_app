@@ -264,59 +264,65 @@ export default function WorkoutScreen() {
                 onRequestClose={() => setIsModalVisible(false)}
             >
                 <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>Registrar Peso</Text>
-                        <Text style={[styles.modalSubtitle, { color: theme.textMuted }]}>
-                            {activeExercise?.name}
-                        </Text>
+                    <KeyboardAvoidingView
+                        style={{ width: '100%' }}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Registrar Peso</Text>
+                            <Text style={[styles.modalSubtitle, { color: theme.textMuted }]}>
+                                {activeExercise?.name}
+                            </Text>
 
-                        <TextInput
-                            style={[styles.modalInput, { borderColor: theme.primary, color: theme.text }]}
-                            placeholder="Ej. 60"
-                            placeholderTextColor={theme.textMuted}
-                            keyboardType="phone-pad"
-                            autoFocus={true}
-                            value={weightInput}
-                            onChangeText={setWeightInput}
-                            onSubmitEditing={() => {
-                                if (weightInput && activeExercise) {
-                                    const parsed = parseFloat(weightInput);
-                                    if (!isNaN(parsed) && parsed > 0) {
-                                        logWeight(activeExercise.name, parsed, parseInt(activeExercise.reps) || 1);
-                                    }
-                                }
-                                toggleExercise(activeDay.id, activeExercise.id);
-                                setIsModalVisible(false);
-                            }}
-                        />
-                        <Text style={[styles.modalUnitText, { color: theme.textMuted }]}>kg</Text>
-
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity
-                                style={styles.modalCancelBtn}
-                                onPress={() => setIsModalVisible(false)}
-                            >
-                                <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]}
-                                onPress={() => {
+                            <TextInput
+                                style={[styles.modalInput, { borderColor: theme.primary, color: theme.text }]}
+                                placeholder="Ej. 60"
+                                placeholderTextColor={theme.textMuted}
+                                keyboardType="phone-pad"
+                                autoFocus={true}
+                                value={weightInput}
+                                onChangeText={setWeightInput}
+                                onSubmitEditing={() => {
                                     if (weightInput && activeExercise) {
                                         const parsed = parseFloat(weightInput);
                                         if (!isNaN(parsed) && parsed > 0) {
                                             logWeight(activeExercise.name, parsed, parseInt(activeExercise.reps) || 1);
                                         }
                                     }
-                                    if (activeExercise) {
-                                        toggleExercise(activeDay.id, activeExercise.id);
-                                    }
+                                    toggleExercise(activeDay.id, activeExercise.id);
                                     setIsModalVisible(false);
                                 }}
-                            >
-                                <Text style={styles.modalSaveText}>Guardar</Text>
-                            </TouchableOpacity>
+                            />
+                            <Text style={[styles.modalUnitText, { color: theme.textMuted }]}>kg</Text>
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity
+                                    style={styles.modalCancelBtn}
+                                    onPress={() => setIsModalVisible(false)}
+                                >
+                                    <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]}
+                                    onPress={() => {
+                                        if (weightInput && activeExercise) {
+                                            const parsed = parseFloat(weightInput);
+                                            if (!isNaN(parsed) && parsed > 0) {
+                                                logWeight(activeExercise.name, parsed, parseInt(activeExercise.reps) || 1);
+                                            }
+                                        }
+                                        if (activeExercise) {
+                                            toggleExercise(activeDay.id, activeExercise.id);
+                                        }
+                                        setIsModalVisible(false);
+                                    }}
+                                >
+                                    <Text style={styles.modalSaveText}>Guardar</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
@@ -327,31 +333,37 @@ export default function WorkoutScreen() {
                 animationType="fade"
                 onRequestClose={() => setIsCsvModalVisible(false)}
             >
-                <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingTop: 0 }]}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>Cargar Rutina .CSV</Text>
-                        <Text style={[styles.modalSubtitle, { color: theme.textMuted }]}>
-                            Pega aquí tu rutina separada por comas.
-                        </Text>
+                <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+                    <KeyboardAvoidingView
+                        style={{ width: '100%' }}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Cargar Rutina .CSV</Text>
+                            <Text style={[styles.modalSubtitle, { color: theme.textMuted }]}>
+                                Pega aquí tu rutina separada por comas.
+                            </Text>
 
-                        <TextInput
-                            style={[styles.csvInput, { borderColor: theme.border, color: theme.text, backgroundColor: theme.background }]}
-                            placeholder={`Día 1, Sentadilla, 3, 10\nDía 1, Press Banca, 3, 8`}
-                            placeholderTextColor={theme.textMuted}
-                            multiline={true}
-                            value={csvInput}
-                            onChangeText={setCsvInput}
-                        />
+                            <TextInput
+                                style={[styles.csvInput, { borderColor: theme.border, color: theme.text, backgroundColor: theme.background }]}
+                                placeholder={`Día 1, Sentadilla, 3, 10\nDía 1, Press Banca, 3, 8`}
+                                placeholderTextColor={theme.textMuted}
+                                multiline={true}
+                                value={csvInput}
+                                onChangeText={setCsvInput}
+                            />
 
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsCsvModalVisible(false)}>
-                                <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]} onPress={handleParseCSV}>
-                                <Text style={styles.modalSaveText}>Importar</Text>
-                            </TouchableOpacity>
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsCsvModalVisible(false)}>
+                                    <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]} onPress={handleParseCSV}>
+                                    <Text style={styles.modalSaveText}>Importar</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
@@ -362,42 +374,48 @@ export default function WorkoutScreen() {
                 animationType="fade"
                 onRequestClose={() => setIsAddDayModalVisible(false)}
             >
-                <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingTop: 0 }]}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>Nuevo Día</Text>
-                        <TextInput
-                            style={[styles.textInputFull, { borderColor: theme.border, color: theme.text }]}
-                            placeholder="Nombre (ej. Pierna y Hombro)"
-                            placeholderTextColor={theme.textMuted}
-                            value={newDayTitle}
-                            onChangeText={setNewDayTitle}
-                        />
-                        <TextInput
-                            style={[styles.textInputFull, { borderColor: theme.border, color: theme.text, marginTop: 12 }]}
-                            placeholder="Descripción corta"
-                            placeholderTextColor={theme.textMuted}
-                            value={newDaySubtitle}
-                            onChangeText={setNewDaySubtitle}
-                        />
-                        <View style={[styles.modalActions, { marginTop: 24 }]}>
-                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsAddDayModalVisible(false)}>
-                                <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]}
-                                onPress={async () => {
-                                    if (newDayTitle.trim()) {
-                                        const newId = await addDayToRoutine(newDayTitle, newDaySubtitle);
-                                        setSelectedDayId(newId);
-                                        setNewDayTitle('');
-                                        setNewDaySubtitle('');
-                                        setIsAddDayModalVisible(false);
-                                    }
-                                }}>
-                                <Text style={styles.modalSaveText}>Crear</Text>
-                            </TouchableOpacity>
+                <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+                    <KeyboardAvoidingView
+                        style={{ width: '100%' }}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Nuevo Día</Text>
+                            <TextInput
+                                style={[styles.textInputFull, { borderColor: theme.border, color: theme.text }]}
+                                placeholder="Nombre (ej. Pierna y Hombro)"
+                                placeholderTextColor={theme.textMuted}
+                                value={newDayTitle}
+                                onChangeText={setNewDayTitle}
+                            />
+                            <TextInput
+                                style={[styles.textInputFull, { borderColor: theme.border, color: theme.text, marginTop: 12 }]}
+                                placeholder="Descripción corta"
+                                placeholderTextColor={theme.textMuted}
+                                value={newDaySubtitle}
+                                onChangeText={setNewDaySubtitle}
+                            />
+                            <View style={[styles.modalActions, { marginTop: 24 }]}>
+                                <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsAddDayModalVisible(false)}>
+                                    <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]}
+                                    onPress={async () => {
+                                        if (newDayTitle.trim()) {
+                                            const newId = await addDayToRoutine(newDayTitle, newDaySubtitle);
+                                            setSelectedDayId(newId);
+                                            setNewDayTitle('');
+                                            setNewDaySubtitle('');
+                                            setIsAddDayModalVisible(false);
+                                        }
+                                    }}>
+                                    <Text style={styles.modalSaveText}>Crear</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
@@ -408,52 +426,58 @@ export default function WorkoutScreen() {
                 animationType="fade"
                 onRequestClose={() => setIsAddExerciseModalVisible(false)}
             >
-                <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingTop: 0 }]}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>Añadir Ejercicio</Text>
-                        <TextInput
-                            style={[styles.textInputFull, { borderColor: theme.border, color: theme.text }]}
-                            placeholder="Nombre del Ejercicio"
-                            placeholderTextColor={theme.textMuted}
-                            value={newExName}
-                            onChangeText={setNewExName}
-                        />
-                        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+                <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+                    <KeyboardAvoidingView
+                        style={{ width: '100%' }}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Añadir Ejercicio</Text>
                             <TextInput
-                                style={[styles.textInputFull, { flex: 1, borderColor: theme.border, color: theme.text }]}
-                                placeholder="Series (ej. 4)"
+                                style={[styles.textInputFull, { borderColor: theme.border, color: theme.text }]}
+                                placeholder="Nombre del Ejercicio"
                                 placeholderTextColor={theme.textMuted}
-                                keyboardType="number-pad"
-                                value={newExSets}
-                                onChangeText={setNewExSets}
+                                value={newExName}
+                                onChangeText={setNewExName}
                             />
-                            <TextInput
-                                style={[styles.textInputFull, { flex: 1, borderColor: theme.border, color: theme.text }]}
-                                placeholder="Reps (ej. 8-12)"
-                                placeholderTextColor={theme.textMuted}
-                                value={newExReps}
-                                onChangeText={setNewExReps}
-                            />
+                            <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+                                <TextInput
+                                    style={[styles.textInputFull, { flex: 1, borderColor: theme.border, color: theme.text }]}
+                                    placeholder="Series (ej. 4)"
+                                    placeholderTextColor={theme.textMuted}
+                                    keyboardType="number-pad"
+                                    value={newExSets}
+                                    onChangeText={setNewExSets}
+                                />
+                                <TextInput
+                                    style={[styles.textInputFull, { flex: 1, borderColor: theme.border, color: theme.text }]}
+                                    placeholder="Reps (ej. 8-12)"
+                                    placeholderTextColor={theme.textMuted}
+                                    value={newExReps}
+                                    onChangeText={setNewExReps}
+                                />
+                            </View>
+                            <View style={[styles.modalActions, { marginTop: 24 }]}>
+                                <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsAddExerciseModalVisible(false)}>
+                                    <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]}
+                                    onPress={async () => {
+                                        if (newExName.trim()) {
+                                            await addExerciseToDay(activeDay.id, newExName, newExSets, newExReps);
+                                            setNewExName('');
+                                            setNewExSets('');
+                                            setNewExReps('');
+                                            setIsAddExerciseModalVisible(false);
+                                        }
+                                    }}>
+                                    <Text style={styles.modalSaveText}>Añadir</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <View style={[styles.modalActions, { marginTop: 24 }]}>
-                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsAddExerciseModalVisible(false)}>
-                                <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalSaveBtn, { backgroundColor: theme.primary }]}
-                                onPress={async () => {
-                                    if (newExName.trim()) {
-                                        await addExerciseToDay(activeDay.id, newExName, newExSets, newExReps);
-                                        setNewExName('');
-                                        setNewExSets('');
-                                        setNewExReps('');
-                                        setIsAddExerciseModalVisible(false);
-                                    }
-                                }}>
-                                <Text style={styles.modalSaveText}>Añadir</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
         </SafeAreaView>
