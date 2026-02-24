@@ -39,7 +39,7 @@ export const ExerciseItem = ({ title, subtitle, notes, isChecked, onToggle, onDe
                         {
                             backgroundColor: theme.surface,
                             borderColor: theme.border,
-                            width: SCREEN_WIDTH - 48 // 24 padding each side
+                            width: SCREEN_WIDTH - 48, // 24 padding each side
                         },
                         isChecked && { borderColor: theme.primary + '80' }
                     ]}
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         borderRadius: 16,
         overflow: 'hidden',
-        backgroundColor: '#ef4444', // Red background behind swipe
+        backgroundColor: 'transparent',
     },
     scrollContent: {
         flexDirection: 'row',
@@ -135,7 +135,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#ef4444',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100%',
         borderTopRightRadius: 16,
         borderBottomRightRadius: 16,
     },
